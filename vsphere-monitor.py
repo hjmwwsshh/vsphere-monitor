@@ -8,7 +8,10 @@ Email: freedomkk_qfeng@qq.com
 Script to get vSphere metrics and push to Open-Falcon
 Version 0.2
 """
-
+"""
+2019-10-25 forked & modified by hjmwwsshh
+add some metrics to be monitored
+"""
 import atexit
 from pyVmomi import vim, vmodl
 from pyVim.connect import SmartConnectNoSSL, Disconnect
@@ -95,6 +98,13 @@ def HostInformation(host,datacenter_name,computeResource_name,content,perf_dict,
 
         cpuUsage = 100 * 1000 * 1000 * float(stats.overallCpuUsage) / float(hardware.cpuInfo.numCpuCores * hardware.cpuInfo.hz)
         add_data("esxi.cpu.usage",cpuUsage,"GAUGE",tags)
+        
+        #"2019-10-25 add"
+        for cpuThread in range(0,hardware.cpuInfo.numCpuThreads):
+            statCpuThreadUsage = BuildQuery(content, vchtime, (perf_id(perf_dict, 'cpu.usage.average')), str(cpuThread), host, interval)
+            cpuThreadUsage = (float(sum(statCpuThreadUsage[0].value[0].value)) / 100)
+            add_data("esxi.cpu.usage.percore",cpuThreadUsage,"GAUGE",tags + ",core=" + str(cpuThread))
+        #"2019-10-25 add"
 
         memoryCapacity = hardware.memorySize
         add_data("esxi.memory.capacity",memoryCapacity,"GAUGE",tags)
@@ -114,7 +124,42 @@ def HostInformation(host,datacenter_name,computeResource_name,content,perf_dict,
         statNetworkRx = BuildQuery(content, vchtime, (perf_id(perf_dict, 'net.received.average')), "", host, interval)
         networkRx = (float(sum(statNetworkRx[0].value[0].value) * 8 * 1024) / statInt)
         add_data("esxi.net.if.in",networkRx,"GAUGE",tags)
-
+        
+        #"2019-10-25 add"
+        statDiskWrite = BuildQuery(content, vchtime, (perf_id(perf_dict, 'disk.write.average')), "", host, interval)
+        diskWrite = (float(sum(statDiskWrite[0].value[0].value)))
+        add_data("esxi.disk.write",diskWrite,"GAUGE",tags)
+        
+        statDiskRead = BuildQuery(content, vchtime, (perf_id(perf_dict, 'disk.read.average')), "", host, interval)
+        diskRead = (float(sum(statDiskRead[0].value[0].value)))
+        add_data("esxi.disk.read",diskRead,"GAUGE",tags)
+        
+        statPacketsTx = BuildQuery(content, vchtime, (perf_id(perf_dict, 'net.packetsTx.summation')), "", host, interval)
+        packetTx = (float(sum(statPacketsTx[0].value[0].value)))
+        add_data("esxi.net.packets.out",packetTx,"GAUGE",tags)
+        
+        statPacketsRx = BuildQuery(content, vchtime, (perf_id(perf_dict, 'net.packetsRx.summation')), "", host, interval)
+        packetRx = (float(sum(statPacketsRx[0].value[0].value)))
+        add_data("esxi.net.packets.in",packetRx,"GAUGE",tags)
+        
+        statDroppedTx = BuildQuery(content, vchtime, (perf_id(perf_dict, 'net.droppedTx.summation')), "", host, interval)
+        droppedTx = (float(sum(statDroppedTx[0].value[0].value)))
+        add_data("esxi.net.packets.dropped.out",droppedTx,"GAUGE",tags)
+        
+        statDroppedRx = BuildQuery(content, vchtime, (perf_id(perf_dict, 'net.droppedRx.summation')), "", host, interval)
+        droppedRx = (float(sum(statDroppedRx[0].value[0].value)))
+        add_data("esxi.net.packets.dropped.in",droppedRx,"GAUGE",tags)
+        
+        statErrorsTx = BuildQuery(content, vchtime, (perf_id(perf_dict, 'net.errorsTx.summation')), "", host, interval)
+        errorsTx = (float(sum(statDroppedTx[0].value[0].value)))
+        add_data("esxi.net.packets.errors.out",droppedTx,"GAUGE",tags)
+        
+        statErrorsRx = BuildQuery(content, vchtime, (perf_id(perf_dict, 'net.errorsRx.summation')), "", host, interval)
+        errorsRx = (float(sum(statDroppedRx[0].value[0].value)))
+        add_data("esxi.net.packets.errors.in",droppedRx,"GAUGE",tags)
+        
+        #"2019-10-25 add"
+        
         add_data("esxi.alive",1,"GAUGE",tags)
 
     except Exception as error:
@@ -161,7 +206,7 @@ def DatastoreInformation(datastore,datacenter_name):
         print error
         pass
 
-def add_data(metric,value,conterType,tags):
+def add_data(metric,value,conterType,tags): #组装数据以符合openfalcon的格式
     data = {"endpoint":endpoint,"metric":metric,"timestamp":ts,"step":interval,"value":value,"counterType":conterType,"tags":tags}
     payload.append(copy.copy(data))
 
@@ -235,8 +280,8 @@ def hello_vcenter(vchost,username,password,port):
 def BuildQuery(content, vchtime, counterId, instance, entity, interval):
     perfManager = content.perfManager
     metricId = vim.PerformanceManager.MetricId(counterId=counterId, instance=instance)
-    startTime = vchtime - timedelta(seconds=(interval + 60))
-    endTime = vchtime - timedelta(seconds=60)
+    startTime = vchtime - timedelta(seconds=(interval))# + 60))
+    endTime = vchtime #- timedelta(seconds=60)
     query = vim.PerformanceManager.QuerySpec(intervalId=20, entity=entity, metricId=[metricId], startTime=startTime,
                                              endTime=endTime)
     perfResults = perfManager.QueryPerf(querySpec=[query])
