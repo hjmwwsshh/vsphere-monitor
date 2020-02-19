@@ -72,11 +72,11 @@ def VmInfo(vm,content,vchtime,interval,perf_dict,tags):
 
         statNetworkTx = BuildQuery(content, vchtime, (perf_id(perf_dict, 'net.transmitted.average')), "", vm, interval)
         if statNetworkTx != False:
-            networkTx = (float(sum(statNetworkTx[0].value[0].value) * 8 * 1024) / statInt)
+            networkTx = (float(sum(statNetworkTx[0].value[0].value)) / statInt)
             add_data("vm.net.if.out",networkTx,"GAUGE",tags)
         statNetworkRx = BuildQuery(content, vchtime, (perf_id(perf_dict, 'net.received.average')), "", vm, interval)
         if statNetworkRx != False:
-            networkRx = (float(sum(statNetworkRx[0].value[0].value) * 8 * 1024) / statInt)        
+            networkRx = (float(sum(statNetworkRx[0].value[0].value)) / statInt)        
             add_data("vm.net.if.in",networkRx,"GAUGE",tags)      
         
     except Exception as error:
@@ -118,11 +118,11 @@ def HostInformation(host,datacenter_name,computeResource_name,content,perf_dict,
         add_data("esxi.memory.freePercent",freeMemoryPercentage,"GAUGE",tags)
 
         statNetworkTx = BuildQuery(content, vchtime, (perf_id(perf_dict, 'net.transmitted.average')), "", host, interval)       
-        networkTx = (float(sum(statNetworkTx[0].value[0].value) * 8 * 1024) / statInt)
+        networkTx = (float(sum(statNetworkTx[0].value[0].value)) / statInt)
         add_data("esxi.net.if.out",networkTx,"GAUGE",tags)
         
         statNetworkRx = BuildQuery(content, vchtime, (perf_id(perf_dict, 'net.received.average')), "", host, interval)
-        networkRx = (float(sum(statNetworkRx[0].value[0].value) * 8 * 1024) / statInt)
+        networkRx = (float(sum(statNetworkRx[0].value[0].value)) / statInt)
         add_data("esxi.net.if.in",networkRx,"GAUGE",tags)
         
         #"2019-10-25 add"
