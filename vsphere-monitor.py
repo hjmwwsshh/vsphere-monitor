@@ -102,7 +102,7 @@ def HostInformation(host,datacenter_name,computeResource_name,content,perf_dict,
         #"2019-10-25 add"
         for cpuThread in range(0,hardware.cpuInfo.numCpuThreads):
             statCpuThreadUsage = BuildQuery(content, vchtime, (perf_id(perf_dict, 'cpu.usage.average')), str(cpuThread), host, interval)
-            cpuThreadUsage = (float(sum(statCpuThreadUsage[0].value[0].value)) / 100)
+            cpuThreadUsage = (float(sum(statCpuThreadUsage[0].value[0].value)) / 100 / statInt)
             add_data("esxi.cpu.usage.percore",cpuThreadUsage,"GAUGE",tags + ",core=" + str(cpuThread))
         #"2019-10-25 add"
 
@@ -127,35 +127,35 @@ def HostInformation(host,datacenter_name,computeResource_name,content,perf_dict,
         
         #"2019-10-25 add"
         statDiskWrite = BuildQuery(content, vchtime, (perf_id(perf_dict, 'disk.write.average')), "", host, interval)
-        diskWrite = (float(sum(statDiskWrite[0].value[0].value)))
+        diskWrite = (float(sum(statDiskWrite[0].value[0].value)) / statInt)
         add_data("esxi.disk.write",diskWrite,"GAUGE",tags)
         
         statDiskRead = BuildQuery(content, vchtime, (perf_id(perf_dict, 'disk.read.average')), "", host, interval)
-        diskRead = (float(sum(statDiskRead[0].value[0].value)))
+        diskRead = (float(sum(statDiskRead[0].value[0].value)) / statInt)
         add_data("esxi.disk.read",diskRead,"GAUGE",tags)
         
         statPacketsTx = BuildQuery(content, vchtime, (perf_id(perf_dict, 'net.packetsTx.summation')), "", host, interval)
-        packetTx = (float(sum(statPacketsTx[0].value[0].value)))
+        packetTx = (float(sum(statPacketsTx[0].value[0].value)) / statInt)
         add_data("esxi.net.packets.out",packetTx,"GAUGE",tags)
         
         statPacketsRx = BuildQuery(content, vchtime, (perf_id(perf_dict, 'net.packetsRx.summation')), "", host, interval)
-        packetRx = (float(sum(statPacketsRx[0].value[0].value)))
+        packetRx = (float(sum(statPacketsRx[0].value[0].value)) / statInt)
         add_data("esxi.net.packets.in",packetRx,"GAUGE",tags)
         
         statDroppedTx = BuildQuery(content, vchtime, (perf_id(perf_dict, 'net.droppedTx.summation')), "", host, interval)
-        droppedTx = (float(sum(statDroppedTx[0].value[0].value)))
+        droppedTx = (float(sum(statDroppedTx[0].value[0].value)) / statInt)
         add_data("esxi.net.packets.dropped.out",droppedTx,"GAUGE",tags)
         
         statDroppedRx = BuildQuery(content, vchtime, (perf_id(perf_dict, 'net.droppedRx.summation')), "", host, interval)
-        droppedRx = (float(sum(statDroppedRx[0].value[0].value)))
+        droppedRx = (float(sum(statDroppedRx[0].value[0].value)) / statInt)
         add_data("esxi.net.packets.dropped.in",droppedRx,"GAUGE",tags)
         
         statErrorsTx = BuildQuery(content, vchtime, (perf_id(perf_dict, 'net.errorsTx.summation')), "", host, interval)
-        errorsTx = (float(sum(statDroppedTx[0].value[0].value)))
+        errorsTx = (float(sum(statDroppedTx[0].value[0].value)) / statInt)
         add_data("esxi.net.packets.errors.out",droppedTx,"GAUGE",tags)
         
         statErrorsRx = BuildQuery(content, vchtime, (perf_id(perf_dict, 'net.errorsRx.summation')), "", host, interval)
-        errorsRx = (float(sum(statDroppedRx[0].value[0].value)))
+        errorsRx = (float(sum(statDroppedRx[0].value[0].value)) / statInt)
         add_data("esxi.net.packets.errors.in",droppedRx,"GAUGE",tags)
         
         #"2019-10-25 add"
